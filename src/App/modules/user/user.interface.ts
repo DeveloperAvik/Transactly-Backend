@@ -13,18 +13,18 @@ export interface IAuthProvider {
   providerId: string;
 }
 
-export enum AccountStatus {
+export enum isActive {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   BLOCKED = "BLOCKED"
 }
 
-export enum VerificationStatus {
+export enum isVerified {
   VERIFIED = "VERIFIED",
   UNVERIFIED = "UNVERIFIED"
 }
 
-export enum DeletionStatus {
+export enum isDeleted {
   DELETED = "DELETED",
   UNDELETED = "UNDELETED"
 }
@@ -39,9 +39,9 @@ export interface IUser {
   picture?: string;
   address?: string;
 
-  isDeleted?: DeletionStatus;
-  isActive?: AccountStatus;
-  isVerified?: VerificationStatus;
+  isDeleted?: isDeleted;
+  isActive?: isActive;
+  isVerified?: isVerified;
 
   role: Role;
 

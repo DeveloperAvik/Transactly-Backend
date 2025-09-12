@@ -1,4 +1,4 @@
-import { IAuthProvider, AccountStatus, DeletionStatus, VerificationStatus, IUser, Role } from "./user.interface";
+import { IAuthProvider, isActive, isDeleted, isVerified, IUser, Role } from "./user.interface";
 import { model, Schema, Types } from "mongoose";
 
 const authProviderSchema = new Schema<IAuthProvider>(
@@ -22,9 +22,9 @@ const userSchema = new Schema<IUser>(
     picture: { type: String },
     address: { type: String },
 
-    isDeleted: { type: String, enum: Object.values(DeletionStatus), default: DeletionStatus.UNDELETED },
-    isActive: { type: String, enum: Object.values(AccountStatus), default: AccountStatus.ACTIVE },
-    isVerified: { type: String, enum: Object.values(VerificationStatus), default: VerificationStatus.UNVERIFIED },
+    isDeleted: { type: String, enum: Object.values(isDeleted), default: isDeleted.UNDELETED },
+    isActive: { type: String, enum: Object.values(isActive), default: isActive.ACTIVE },
+    isVerified: { type: String, enum: Object.values(isVerified), default: isVerified.UNVERIFIED },
 
     role: { type: String, enum: Object.values(Role), default: Role.USER },
 

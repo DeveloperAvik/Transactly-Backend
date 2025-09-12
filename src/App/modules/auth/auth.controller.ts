@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { catchAsync } from "../../utils/catchAsyncs";
-import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from 'http-status-codes';
 import { AuthServices } from './auth.service';
 import AppError from "../../errorHelpers/AppError";
 import { setAuthCookie } from "../../utils/setCookie";
 import { decode, JwtPayload } from "jsonwebtoken";
-import { createUserTokens } from "../../utils/userTokes";
+import { createUserTokens } from "../../utils/userTokens";
 import { envVars } from "../../config/env";
 import passport from "passport";
+import { sendResponse } from '../../utils/sendRespose';
 
 const credentialsLogin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 

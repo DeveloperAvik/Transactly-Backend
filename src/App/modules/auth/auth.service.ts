@@ -3,7 +3,7 @@ import { isActive, isDeleted, IUser } from "../user/user.interface"
 import { User } from "../user/user.model";
 import httpStatus from 'http-status-codes';
 import bcryptjs from 'bcryptjs';
-import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userTokes";
+import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userTokens";
 import { generateToken, verifyToken } from "../../utils/jwt";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";

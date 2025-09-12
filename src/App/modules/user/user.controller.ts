@@ -3,7 +3,8 @@ import { UserServices } from "./user.service";
 import httpStatus from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import { catchAsync } from "../../utils/catchAsyncs";
-import { sendResponse } from "../../utils/sendResponse";
+import { sendResponse } from '../../utils/sendRespose';
+import { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserServices.createUser(req.body);
@@ -21,7 +22,7 @@ const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     const verifiedToken = req.user; // set by auth middleware
     const payload = req.body;
 
-    const result = await UserServices.updateUser(userId, payload, verifiedToken);
+    const result = await UserServices.updateUser(userId, payload, verifiedToken as JwtPayload);
 
     sendResponse(res, {
         success: true,
