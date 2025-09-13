@@ -4,7 +4,7 @@ import { router } from "./App/routes";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import expressSession from "express-session"
-import "./app/config/passport"
+import "./App/config/passport"
 import notFound from './App/middlewares/notFound';
 import { globalErrorHandler } from './App/middlewares/globalErrorHandler';
 

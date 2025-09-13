@@ -11,6 +11,7 @@ interface EnvVars {
     JWT_ACCESS_EXPIRES: string;
     SUPER_ADMIN_EMAIL: string;
     SUPER_ADMIN_PASS: string;
+    SUPER_ADMIN_PHONE: string;
     JWT_REFREESH_SECRET: string;
     JWT_REFREESH_EXPIRED: string;
     GOOGLE_CLIENT_SECRET: string,
@@ -39,6 +40,7 @@ const loasEnvVars = (): EnvVars => {
         JWT_ACCESS_EXPIRES: process.env.JWT_ACCESS_EXPIRES as string,
         SUPER_ADMIN_PASS: process.env.SUPER_ADMIN_PASS as string,
         SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL as string,
+        SUPER_ADMIN_PHONE:process.env.SUPER_ADMIN_PHONE as string,
         JWT_REFREESH_SECRET: process.env.JWT_REFREESH_SECRET as string,
         JWT_REFREESH_EXPIRED: process.env.JWT_REFREESH_EXPIRED as string,
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,

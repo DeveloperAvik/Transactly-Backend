@@ -22,10 +22,11 @@ export const seedSuperAdmin = async () => {
             providerId: envVars.SUPER_ADMIN_EMAIL
         }
 
-        const payload : IUser = {
+        const payload: IUser = {
             name: "superadmin",
             role: Role.SUPERADMIN,
             email: envVars.SUPER_ADMIN_EMAIL,
+            phoneNumber: envVars.SUPER_ADMIN_PHONE,
             password: hashedPassword,
             isVerified: isVerified.VERIFIED,
             auths: [authProvider]
