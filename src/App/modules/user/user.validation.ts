@@ -5,13 +5,13 @@ export const createUserZodSchema = z.object({
     name: z.string()
         .min(2, { message: "Name too short. Minimum 2 characters required." })
         .max(50, { message: "Name too long. Maximum 50 characters allowed." })
-        .min(1, { message: "Name is required." }),
+        .nonempty({ message: "Name is required." }),
 
     email: z.string()
         .email({ message: "Invalid email format." })
         .min(3, { message: "Email must be at least 3 characters long" })
         .max(100, { message: "Email cannot exceed 100 characters" })
-        .min(1, { message: "Email is required." }),
+        .nonempty({ message: "Email is required." }),
 
     password: z.string()
         .min(8, { message: "Password must be at least 8 characters long." })
@@ -32,7 +32,7 @@ export const updateUserZodSchema = z.object({
     name: z.string()
         .min(2, { message: "Name too short. Minimum 2 characters required." })
         .max(50, { message: "Name too long. Maximum 50 characters allowed." })
-        .min(1, { message: "Name is required." })
+        .nonempty({ message: "Name is required." })
         .optional(),
 
     password: z.string()
@@ -46,9 +46,9 @@ export const updateUserZodSchema = z.object({
         .regex(/^\+?[1-9]\d{1,14}$/, { message: "Invalid phone number format." })
         .optional(),
 
-    role: z.nativeEnum(Role).optional(),
+    role: z.enum(Object.values(Role) as [string, ...string[]]).optional(),
 
-    isActive: z.nativeEnum(isActive).optional(),
+    isActive: z.enum(Object.values(isActive) as [string]).optional(),
 
     isDeleted: z.boolean({ invalid_type_error: "isDeleted must be true or false" }).optional(),
 
