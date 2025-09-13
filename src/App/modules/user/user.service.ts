@@ -12,22 +12,28 @@ const INITIAL_BALANCE = 50;
 const createUser = async (payload: Partial<IUser>) => {
     const { email, password, role = Role.USER, ...rest } = payload;
 
-    const isUserExist = await User.findOne({ email });
-    if (isUserExist) {
-        throw new AppError(
-            httpStatus.BAD_REQUEST,
-            `User with email ${email} already exists`
-        );
+    if (!password) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Password is required");
+    }
+
+    if (email) {
+        const isUserExist = await User.findOne({ email });
+        if (isUserExist) {
+            throw new AppError(
+                httpStatus.BAD_REQUEST,
+                `User with email ${email} already exists`
+            );
+        }
     }
 
     const hashedPassword = await bcryptjs.hash(
-        password as string,
-        Number(envVars.BCRYPT_SALT_ROUND)
+        password,
+        Number(envVars.bcryptSaltRound)
     );
 
     const authProvider: IAuthProvider = {
         provider: "credentials",
-        providerId: email!,
+        providerId: email || rest.phoneNumber!,
     };
 
     const user = await User.create({
@@ -40,11 +46,11 @@ const createUser = async (payload: Partial<IUser>) => {
 
     // Auto-create wallet
     // if (user.role === Role.USER || user.role === Role.AGENT) {
-    //     await Wallet.create({
-    //         user: user._id,
-    //         balance: INITIAL_BALANCE,
-    //         isBlocked: false,
-    //     });
+    //   await Wallet.create({
+    //     user: user._id,
+    //     balance: INITIAL_BALANCE,
+    //     isBlocked: false,
+    //   });
     // }
 
     const { password: _, ...safeUser } = user.toObject();
@@ -65,7 +71,6 @@ const updateUser = async (
         if (decodedToken.role === Role.USER || decodedToken.role === Role.AGENT) {
             throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
         }
-
         if (payload.role === Role.SUPERADMIN && decodedToken.role === Role.ADMIN) {
             throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
         }
@@ -80,7 +85,7 @@ const updateUser = async (
     if (payload.password) {
         payload.password = await bcryptjs.hash(
             payload.password,
-            Number(envVars.BCRYPT_SALT_ROUND)
+            Number(envVars.bcryptSaltRound)
         );
     }
 
@@ -89,7 +94,12 @@ const updateUser = async (
         runValidators: true,
     });
 
-    return newUpdatedUser;
+    if (newUpdatedUser) {
+        const { password, ...safeUser } = newUpdatedUser.toObject();
+        return safeUser;
+    }
+
+    return null;
 };
 
 const getAllUsers = async (page = 1, limit = 10) => {

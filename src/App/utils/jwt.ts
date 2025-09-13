@@ -1,16 +1,22 @@
-import { JwtPayload, SignOptions } from "jsonwebtoken";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
-export const generateToken = (payload: JwtPayload, secret: string, expiresIn: string) => {
-    const token = jwt.sign(payload, secret, {
-        expiresIn
-    } as SignOptions)
 
-    return token;
-}
+export const generateToken = (
+    payload: object,
+    secret: string,
+    expiresIn: string
+): string => {
+    return jwt.sign(payload, secret, { expiresIn } as SignOptions);
+};
 
-export const verifyToken = (token: string, secret: string) => {
-    const verifiedToken = jwt.verify(token, secret);
 
-    return verifiedToken
-}
+export const verifyToken = (
+    token: string,
+    secret: string
+): JwtPayload | string => {
+    try {
+        return jwt.verify(token, secret);
+    } catch (error) {
+        throw new Error("Invalid or expired token");
+    }
+};

@@ -1,54 +1,69 @@
-import dotenv from 'dotenv';
-
+import dotenv from "dotenv";
 dotenv.config();
 
 interface EnvVars {
-    nodeEnv: "development" | "production" | "test";
-    port: string;
-    mongodbUrl: string;
-    BCRYPT_SALT_ROUND: string;
-    JWT_ACCESS_SECRET: string;
-    JWT_ACCESS_EXPIRES: string;
-    SUPER_ADMIN_EMAIL: string;
-    SUPER_ADMIN_PASS: string;
-    SUPER_ADMIN_PHONE: string;
-    JWT_REFREESH_SECRET: string;
-    JWT_REFREESH_EXPIRED: string;
-    GOOGLE_CLIENT_SECRET: string,
-    GOOGLE_CLIENT_ID: string,
-    GOOGLE_CALLBACK_URL: string,
-    EXPRESS_SESSION_SECRET: string,
-    FRONTEND_URL: string,
+  nodeEnv: "development" | "production" | "test";
+  port: number;
+  mongodbUrl: string;
+  bcryptSaltRound: number;
+  jwtAccessSecret: string;
+  jwtAccessExpires: string;
+  jwtRefreshSecret: string;
+  jwtRefreshExpires: string;
+  superAdminEmail: string;
+  superAdminPass: string;
+  superAdminPhone: string;
+  googleClientSecret: string;
+  googleClientId: string;
+  googleCallbackUrl: string;
+  expressSessionSecret: string;
+  frontendUrl: string;
 }
 
-const loasEnvVars = (): EnvVars => {
+const loadEnvVars = (): EnvVars => {
+  const requiredVars: string[] = [
+    "NODE_ENV",
+    "PORT",
+    "MONGODB_URL",
+    "BCRYPT_SALT_ROUND",
+    "JWT_ACCESS_SECRET",
+    "JWT_ACCESS_EXPIRES",
+    "JWT_REFRESH_SECRET",
+    "JWT_REFRESH_EXPIRES",
+    "SUPER_ADMIN_EMAIL",
+    "SUPER_ADMIN_PASS",
+    "SUPER_ADMIN_PHONE",
+    "GOOGLE_CLIENT_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CALLBACK_URL",
+    "EXPRESS_SESSION_SECRET",
+    "FRONTEND_URL",
+  ];
 
-    const requiredVars: string[] = ['NODE_ENV', 'PORT', 'MONGODB_URL', 'BCRYPT_SALT_ROUND', 'JWT_ACCESS_SECRET', 'JWT_ACCESS_EXPIRES', 'JWT_REFREESH_SECRET', 'JWT_REFREESH_EXPIRED', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CALLBACK_URL', 'EXPRESS_SESSION_SECRET', 'FRONTEND_URL'];
+  requiredVars.forEach((varName) => {
+    if (!process.env[varName]) {
+      throw new Error(`❌ Environment variable ${varName} is not set`);
+    }
+  });
 
-    requiredVars.forEach((varName) => {
-        if (!process.env[varName]) {
-            throw new Error(`Environment variable ${varName} is not set`);
-        }
-    });
-
-    return {
-        nodeEnv: process.env.NODE_ENV as "development",
-        port: process.env.PORT as string,
-        mongodbUrl: process.env.MONGODB_URL as string,
-        BCRYPT_SALT_ROUND: process.env.BCRYPT_SALT_ROUND as string,
-        JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET as string,
-        JWT_ACCESS_EXPIRES: process.env.JWT_ACCESS_EXPIRES as string,
-        SUPER_ADMIN_PASS: process.env.SUPER_ADMIN_PASS as string,
-        SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL as string,
-        SUPER_ADMIN_PHONE:process.env.SUPER_ADMIN_PHONE as string,
-        JWT_REFREESH_SECRET: process.env.JWT_REFREESH_SECRET as string,
-        JWT_REFREESH_EXPIRED: process.env.JWT_REFREESH_EXPIRED as string,
-        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
-        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
-        GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
-        EXPRESS_SESSION_SECRET: process.env.EXPRESS_SESSION_SECRET as string,
-        FRONTEND_URL: process.env.FRONTEND_URL as string,
-    };
+  return {
+    nodeEnv: process.env.NODE_ENV as "development" | "production" | "test",
+    port: Number(process.env.PORT),
+    mongodbUrl: process.env.MONGODB_URL as string,
+    bcryptSaltRound: Number(process.env.BCRYPT_SALT_ROUND),
+    jwtAccessSecret: process.env.JWT_ACCESS_SECRET as string,
+    jwtAccessExpires: process.env.JWT_ACCESS_EXPIRES as string,
+    jwtRefreshSecret: process.env.JWT_REFRESH_SECRET as string,
+    jwtRefreshExpires: process.env.JWT_REFRESH_EXPIRES as string,
+    superAdminEmail: process.env.SUPER_ADMIN_EMAIL as string,
+    superAdminPass: process.env.SUPER_ADMIN_PASS as string,
+    superAdminPhone: process.env.SUPER_ADMIN_PHONE as string,
+    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    googleClientId: process.env.GOOGLE_CLIENT_ID as string,
+    googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL as string,
+    expressSessionSecret: process.env.EXPRESS_SESSION_SECRET as string,
+    frontendUrl: process.env.FRONTEND_URL as string,
+  };
 };
 
-export const envVars: EnvVars = loasEnvVars(); 
+export const envVars: EnvVars = loadEnvVars();

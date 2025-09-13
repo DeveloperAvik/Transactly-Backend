@@ -5,52 +5,55 @@ import { verifyToken } from "../utils/jwt";
 import AppError from "../errorHelpers/AppError";
 import { isActive, isDeleted, Role } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
-import httpStatus from 'http-status-codes';
+import httpStatus from "http-status-codes";
 
-export const checkAuth = (...authRoles: string[]) => async (req: Request, res: Response, next: NextFunction) => {
+export const checkAuth =
+    (...authRoles: Role[]) =>
+        async (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const authHeader = req.headers.authorization;
 
-    try {
+                if (!authHeader || !authHeader.startsWith("Bearer ")) {
+                    throw new AppError(httpStatus.UNAUTHORIZED, "No token provided");
+                }
 
-        const accessToken = req.headers.authorization;
+                const accessToken = authHeader.split(" ")[1];
+                const verifiedToken = verifyToken(
+                    accessToken,
+                    envVars.jwtAccessSecret
+                ) as JwtPayload;
 
-        if (!accessToken) {
-            throw new AppError(403, "No Token recived")
-        }
+                const isUserExist = await User.findOne({ email: verifiedToken.email });
+                if (!isUserExist) {
+                    throw new AppError(httpStatus.NOT_FOUND, "User does not exist");
+                }
 
-        const verifiedToken = verifyToken(accessToken, envVars.JWT_ACCESS_SECRET) as JwtPayload
-        const isUserExist = await User.findOne({ email: verifiedToken.email });
+                if (
+                    isUserExist.isActive === isActive.BLOCKED ||
+                    isUserExist.isActive === isActive.INACTIVE
+                ) {
+                    throw new AppError(
+                        httpStatus.FORBIDDEN,
+                        `User is ${isUserExist.isActive}`
+                    );
+                }
 
-        if (!isUserExist) {
-            throw new AppError(httpStatus.BAD_REQUEST, "User doesnot Exist")
-        }
+                if (isUserExist.isDeleted === isDeleted.DELETED) {
+                    throw new AppError(httpStatus.FORBIDDEN, "User is deleted");
+                }
 
-        if (isUserExist.isActive === isActive.BLOCKED || isUserExist.isActive === isActive.INACTIVE) {
-            throw new AppError(httpStatus.BAD_REQUEST, `user is ${isUserExist.isActive}`)
-        }
+                const userRole = (verifiedToken.role as Role) || isUserExist.role;
 
-        if (isUserExist.isDeleted === isDeleted.DELETED) {
-            throw new AppError(httpStatus.BAD_REQUEST, "User is deleted")
-        }
+                if (!authRoles.includes(userRole)) {
+                    throw new AppError(
+                        httpStatus.FORBIDDEN,
+                        "You are not permitted to access this route"
+                    );
+                }
 
-
-        // if(!verifyToken) {
-        //     throw new AppError(403, "You are not authorized in my life also ...")
-        // }
-
-        const userRole = (verifiedToken.Role || verifiedToken.role)?.toLowerCase();
-
-        if (userRole !== Role.SUPERADMIN && !authRoles.includes(userRole as Role)) {
-            throw new AppError(403, "You are not permitted to view this route");
-        }
-
-        req.user = verifiedToken
-
-
-        console.log(verifiedToken);
-
-        next();
-
-    } catch (err) {
-        next(err)
-    }
-}
+                req.user = verifiedToken;
+                next();
+            } catch (err) {
+                next(err);
+            }
+        };

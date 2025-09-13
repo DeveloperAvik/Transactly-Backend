@@ -1,44 +1,49 @@
-import { envVars } from "../config/env"
+import { envVars } from "../config/env";
 import { IAuthProvider, isVerified, IUser, Role } from "../modules/user/user.interface";
-import { User } from "../modules/user/user.model"
-import bcryptjs from 'bcryptjs';
+import { User } from "../modules/user/user.model";
+import bcryptjs from "bcryptjs";
 
 export const seedSuperAdmin = async () => {
     try {
-        const isSuperAdminExist = await User.findOne({ email: envVars.SUPER_ADMIN_EMAIL });
+        // Check required env vars
+        if (!envVars.superAdminEmail || !envVars.superAdminPass || !envVars.bcryptSaltRound) {
+            throw new Error("SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASS or BCRYPT_SALT_ROUND is missing in env");
+        }
 
+        const isSuperAdminExist = await User.findOne({ email: envVars.superAdminEmail });
         if (isSuperAdminExist) {
-            console.log("Super Admin already exist")
+            console.log("Super Admin already exists");
             return;
         }
 
-        console.log("Trying to create super admin \n")
+        console.log("Creating super admin...");
 
-
-        const hashedPassword = await bcryptjs.hash(envVars.SUPER_ADMIN_PASS, Number(envVars.BCRYPT_SALT_ROUND));
+        // Hash password safely
+        const hashedPassword = await bcryptjs.hash(
+            envVars.superAdminPass.trim(),
+            Number(envVars.bcryptSaltRound)
+        );
 
         const authProvider: IAuthProvider = {
             provider: "credentials",
-            providerId: envVars.SUPER_ADMIN_EMAIL
-        }
+            providerId: envVars.superAdminEmail,
+        };
 
         const payload: IUser = {
             name: "superadmin",
             role: Role.SUPERADMIN,
-            email: envVars.SUPER_ADMIN_EMAIL,
-            phoneNumber: envVars.SUPER_ADMIN_PHONE,
+            email: envVars.superAdminEmail,
+            phoneNumber: envVars.superAdminPhone,
             password: hashedPassword,
             isVerified: isVerified.VERIFIED,
-            auths: [authProvider]
-        }
+            auths: [authProvider],
+        };
 
-        const superadmin = await User.create(payload)
+        const superadmin = await User.create(payload);
+        console.log("Super admin created successfully ✅");
 
-        console.log("Super admin created successfully \n")
-        return superadmin
-
-
+        return superadmin;
     } catch (error) {
-        console.log(error)
+        console.error("Failed to seed super admin:", error);
     }
-}
+};

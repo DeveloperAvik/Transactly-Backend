@@ -1,67 +1,77 @@
-import AppError from "../../errorHelpers/AppError";
-import { isActive, isDeleted, IUser } from "../user/user.interface"
-import { User } from "../user/user.model";
-import httpStatus from 'http-status-codes';
-import bcryptjs from 'bcryptjs';
-import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userTokens";
-import { generateToken, verifyToken } from "../../utils/jwt";
-import { envVars } from "../../config/env";
+import httpStatus from "http-status-codes";
+import bcryptjs from "bcryptjs";
 import { JwtPayload } from "jsonwebtoken";
 
+import AppError from "../../errorHelpers/AppError";
+import { IUser } from "../user/user.interface";
+import { User } from "../user/user.model";
+import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userTokens";
+import { envVars } from "../../config/env";
 
-const credentialsLogin = async (payload: Partial<IUser>) => {
-    const { email, password } = payload;
+/**
+ * Login with email & password
+ */
+export const credentialsLogin = async (payload: Partial<IUser>) => {
+  const { email, password } = payload;
 
-    const isUserExist = await User.findOne({ email });
+  if (!email || !password) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Email and password are required");
+  }
 
-    if (!isUserExist) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Email doesnot Exist")
-    }
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Email does not exist");
+  }
 
-    const isPasswordMatch = await bcryptjs.compare(password as string, isUserExist.password as string)
+  const isPasswordMatch = await bcryptjs.compare(password, user.password as string);
+  if (!isPasswordMatch) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Incorrect password");
+  }
 
-    if (!isPasswordMatch) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Incorrect Passoerd")
-    }
+  // generate tokens
+  const userTokens = createUserTokens(user);
 
+  // exclude password
+  const { password: _pass, ...rest } = user.toObject();
 
-    const userTokens = createUserTokens(isUserExist)
-    const { password: pass, ...rest } = isUserExist.toObject();
+  return {
+    accessToken: userTokens.accessToken,
+    refreshToken: userTokens.refreshToken,
+    user: rest,
+  };
+};
 
+/**
+ * Generate new access token using refresh token
+ */
+export const getNewAccessToken = async (refreshToken: string) => {
+  if (!refreshToken) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Refresh token is required");
+  }
 
-    return {
-        accessToken: userTokens.accessToken,
-        refreshToken: userTokens.refreshToken,
-        user: rest
-    }
-}
+  const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
+  return { accessToken: newAccessToken };
+};
 
-const getNewAccessToken = async (refreshToken: string) => {
-    const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken)
-    return {
-        accessToken: newAccessToken
-    }
-}
+/**
+ * Reset password
+ */
+export const resetPassword = async (
+  oldPassword: string,
+  newPassword: string,
+  decodedToken: JwtPayload
+) => {
+  const user = await User.findById(decodedToken.userId);
 
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
 
-const resetPassword = async (OldPassword: string, newPassword: string, decodedToken: JwtPayload) => {
+  const isOldPasswordMatch = await bcryptjs.compare(oldPassword, user.password as string);
+  if (!isOldPasswordMatch) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Old password does not match");
+  }
 
-    const user = await User.findById(decodedToken.userId)
-
-    const isOldPasswordMatch = await bcryptjs.compare(OldPassword, user!.password as string)
-
-    if (!isOldPasswordMatch) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "Old password doesnot match");
-    }
-
-    user!.password = await bcryptjs.hash(newPassword, Number(envVars.BCRYPT_SALT_ROUND))
-
-    user!.save();
-
-}
-
-export const AuthServices = {
-    credentialsLogin,
-    getNewAccessToken,
-    resetPassword
-}
+  user.password = await bcryptjs.hash(newPassword, Number(envVars.bcryptSaltRound));
+  await user.save();
+};

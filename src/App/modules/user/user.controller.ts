@@ -3,9 +3,10 @@ import { UserServices } from "./user.service";
 import httpStatus from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import { catchAsync } from "../../utils/catchAsyncs";
-import { sendResponse } from '../../utils/sendRespose';
+import { sendResponse } from "../../utils/sendRespose";
 import { JwtPayload } from "jsonwebtoken";
 
+// Create user
 const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserServices.createUser(req.body);
 
@@ -17,12 +18,17 @@ const createUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     });
 });
 
+// Update user
 const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
-    const verifiedToken = req.user; // set by auth middleware
-    const payload = req.body;
+    const verifiedToken = req.user as JwtPayload | undefined;
 
-    const result = await UserServices.updateUser(userId, payload, verifiedToken as JwtPayload);
+    if (!verifiedToken) {
+        throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized access");
+    }
+
+    const payload = req.body;
+    const result = await UserServices.updateUser(userId, payload, verifiedToken);
 
     sendResponse(res, {
         success: true,
@@ -32,8 +38,11 @@ const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     });
 });
 
+// Get all users with optional pagination
 const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await UserServices.getAllUsers();
+    const { page = 1, limit = 10 } = req.query;
+
+    const result = await UserServices.getAllUsers(Number(page), Number(limit));
 
     sendResponse(res, {
         success: true,
