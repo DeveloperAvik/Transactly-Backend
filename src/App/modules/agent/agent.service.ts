@@ -1,75 +1,58 @@
-import { JwtPayload } from "jsonwebtoken";
 import { Agent } from "./agent.model";
 import { IAgent } from "./agent.interface";
-import AppError from "../../errorHelpers/AppError";
-import httpStatus from "http-status-codes";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { envVars } from "../../config/env";
 
-const createAgent = async (payload: IAgent, decodedToken: JwtPayload) => {
-    // ✅ Only Admins / Super Admins can create agents
-    if (
-        decodedToken.role !== "admin" &&
-        decodedToken.role !== "super-admin"
-    ) {
-        throw new AppError(httpStatus.FORBIDDEN, "You are not allowed to create an agent");
-    }
+const createAgent = async (payload: Partial<IAgent>) => {
+  // hash password
+  const hashedPassword = await bcrypt.hash(payload.password as string, 10);
 
-    const agent = new Agent(payload);
-    return await agent.save();
+  const agent = await Agent.create({
+    ...payload,
+    password: hashedPassword,
+  });
+
+  return agent;
 };
 
-const updateAgent = async (id: string, payload: Partial<IAgent>, decodedToken: JwtPayload) => {
-    if (
-        decodedToken.role !== "admin" &&
-        decodedToken.role !== "super-admin"
-    ) {
-        throw new AppError(httpStatus.FORBIDDEN, "You are not allowed to update agent info");
-    }
+const loginAgent = async (payload: { email: string; password: string }) => {
+  const agent = await Agent.findOne({ email: payload.email });
+  if (!agent) throw new Error("Agent not found");
 
-    const updatedAgent = await Agent.findByIdAndUpdate(id, payload, {
-        new: true,
-        runValidators: true,
-    });
+  const isMatch = await bcrypt.compare(payload.password, agent.password);
+  if (!isMatch) throw new Error("Invalid credentials");
 
-    if (!updatedAgent) {
-        throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
-    }
+  const token = jwt.sign(
+    { id: agent._id, role: "agent" },
+    envVars.jwtAccessSecret,
+    { expiresIn: "7d" }
+  );
 
-    return updatedAgent;
+  return { token, agent };
 };
 
 const getAllAgents = async () => {
-    const agents = await Agent.find();
-    return {
-        data: agents,
-        meta: { total: agents.length },
-    };
+  return Agent.find();
 };
 
 const getAgentById = async (id: string) => {
-    const agent = await Agent.findById(id);
-    if (!agent) {
-        throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
-    }
-    return agent;
+  return Agent.findById(id);
 };
 
-const deleteAgent = async (id: string, decodedToken: JwtPayload) => {
-    if (decodedToken.role !== "super-admin") {
-        throw new AppError(httpStatus.FORBIDDEN, "Only Super Admin can delete agents");
-    }
+const updateAgent = async (id: string, payload: Partial<IAgent>) => {
+  return Agent.findByIdAndUpdate(id, payload, { new: true });
+};
 
-    const deletedAgent = await Agent.findByIdAndDelete(id);
-    if (!deletedAgent) {
-        throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
-    }
-
-    return deletedAgent;
+const deleteAgent = async (id: string) => {
+  return Agent.findByIdAndDelete(id);
 };
 
 export const AgentService = {
-    createAgent,
-    updateAgent,
-    getAllAgents,
-    getAgentById,
-    deleteAgent,
+  createAgent,
+  loginAgent,
+  getAllAgents,
+  getAgentById,
+  updateAgent,
+  deleteAgent,
 };
