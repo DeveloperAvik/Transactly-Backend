@@ -1,77 +1,30 @@
-import httpStatus from "http-status-codes";
-import bcryptjs from "bcryptjs";
-import { JwtPayload } from "jsonwebtoken";
-
-import AppError from "../../errorHelpers/AppError";
-import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
-import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userTokens";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { envVars } from "../../config/env";
 
-/**
- * Login with email & password
- */
-export const credentialsLogin = async (payload: Partial<IUser>) => {
-  const { email, password } = payload;
+const getNewAccessToken = async (refreshToken: string) => {
+  const decoded = jwt.verify(refreshToken, envVars.jwtRefreshSecret) as { id: string };
+  const user = await User.findById(decoded.id);
+  if (!user) throw new Error("User not found");
 
-  if (!email || !password) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Email and password are required");
-  }
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Email does not exist");
-  }
-
-  const isPasswordMatch = await bcryptjs.compare(password, user.password as string);
-  if (!isPasswordMatch) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Incorrect password");
-  }
-
-  // generate tokens
-  const userTokens = createUserTokens(user);
-
-  // exclude password
-  const { password: _pass, ...rest } = user.toObject();
-
-  return {
-    accessToken: userTokens.accessToken,
-    refreshToken: userTokens.refreshToken,
-    user: rest,
-  };
+  const accessToken = jwt.sign({ id: user._id }, envVars.jwtAccessSecret, { expiresIn: "15m" });
+  return { accessToken };
 };
 
-/**
- * Generate new access token using refresh token
- */
-export const getNewAccessToken = async (refreshToken: string) => {
-  if (!refreshToken) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Refresh token is required");
-  }
+const resetPassword = async (oldPassword: string, newPassword: string, decodedToken: any) => {
+  const user = await User.findById(decodedToken.id);
+  if (!user || !user.password) throw new Error("Invalid user");
 
-  const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
-  return { accessToken: newAccessToken };
-};
+  const isMatch = await bcrypt.compare(oldPassword, user.password);
+  if (!isMatch) throw new Error("Old password does not match");
 
-/**
- * Reset password
- */
-export const resetPassword = async (
-  oldPassword: string,
-  newPassword: string,
-  decodedToken: JwtPayload
-) => {
-  const user = await User.findById(decodedToken.userId);
-
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found");
-  }
-
-  const isOldPasswordMatch = await bcryptjs.compare(oldPassword, user.password as string);
-  if (!isOldPasswordMatch) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Old password does not match");
-  }
-
-  user.password = await bcryptjs.hash(newPassword, Number(envVars.bcryptSaltRound));
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
   await user.save();
+};
+
+export const AuthServices = {
+  getNewAccessToken,
+  resetPassword,
 };

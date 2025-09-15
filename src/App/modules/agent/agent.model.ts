@@ -11,7 +11,7 @@ const agentSchema = new Schema<IAgent>(
         picture: { type: String },
         address: { type: String, maxlength: 200 },
 
-        commissionRate: { type: Number, default: 1 }, // Default 1% commission
+        commissionRate: { type: Number, default: 1 }, 
 
         status: {
             type: String,
@@ -29,7 +29,7 @@ const agentSchema = new Schema<IAgent>(
             default: AgentDeletion.UNDELETED,
         },
 
-        createdBy: { type: Schema.Types.ObjectId, ref: "User" }, // Admin/SuperAdmin
+        createdBy: { type: Schema.Types.ObjectId, ref: "User" }, 
         transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }],
     },
     {

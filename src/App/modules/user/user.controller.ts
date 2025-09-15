@@ -6,7 +6,6 @@ import { catchAsync } from "../../utils/catchAsyncs";
 import { sendResponse } from "../../utils/sendRespose";
 import { JwtPayload } from "jsonwebtoken";
 
-// Create user
 const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserServices.createUser(req.body);
 
@@ -18,7 +17,7 @@ const createUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     });
 });
 
-// Update user
+
 const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
     const verifiedToken = req.user as JwtPayload | undefined;
@@ -38,7 +37,7 @@ const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     });
 });
 
-// Get all users with optional pagination
+
 const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { page = 1, limit = 10 } = req.query;
 

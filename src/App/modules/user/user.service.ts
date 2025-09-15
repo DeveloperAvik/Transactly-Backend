@@ -5,7 +5,7 @@ import httpStatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
-// import { Wallet } from "../wallet/wallet.model";
+import { Wallet } from "../wallet/wallet.model";
 
 const INITIAL_BALANCE = 50;
 
@@ -44,14 +44,13 @@ const createUser = async (payload: Partial<IUser>) => {
         ...rest,
     });
 
-    // Auto-create wallet
-    // if (user.role === Role.USER || user.role === Role.AGENT) {
-    //   await Wallet.create({
-    //     user: user._id,
-    //     balance: INITIAL_BALANCE,
-    //     isBlocked: false,
-    //   });
-    // }
+    if (user.role === Role.USER || user.role === Role.AGENT) {
+        await Wallet.create({
+            user: user._id,
+            balance: INITIAL_BALANCE,
+            isBlocked: false,
+        });
+    }
 
     const { password: _, ...safeUser } = user.toObject();
     return { user: safeUser };

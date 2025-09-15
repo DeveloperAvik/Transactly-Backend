@@ -50,11 +50,11 @@ export const updateUserZodSchema = z.object({
 
     isActive: z.enum(Object.values(isActive) as [string]).optional(),
 
-    isDeleted: z.boolean({ invalid_type_error: "isDeleted must be true or false" }).optional(),
+    isDeleted: z.boolean({ message: "isDeleted must be true or false" }).optional(),
 
-    isVerified: z.boolean({ invalid_type_error: "isVerified must be true or false" }).optional(),
+    isVerified: z.boolean({ message: "isVerified must be true or false" }).optional(),
 
-    address: z.string({ invalid_type_error: "Address must be string" })
+    address: z.string({ message: "Address must be string" })
         .max(200, { message: "Address cannot exceed 200 characters." })
         .optional(),
 });

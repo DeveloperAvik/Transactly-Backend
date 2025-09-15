@@ -6,23 +6,18 @@ import { checkAuth } from "../../middlewares/checkAuths";
 
 const router = Router();
 
-// ✅ Login
 router.post("/login", AuthControllers.credentialsLogin);
 
-// ✅ Refresh token
 router.post("/refresh-token", AuthControllers.getNewAccessToken);
 
-// ✅ Logout
 router.post("/logout", AuthControllers.logOut);
 
-// ✅ Reset password (protected route)
 router.post(
     "/reset-password",
     checkAuth(...Object.values(Role)),
     AuthControllers.resetPassword
 );
 
-// ✅ Google OAuth login
 router.get("/google", (req: Request, res: Response) => {
     const redirect = (req.query.redirect as string) || "/";
     passport.authenticate("google", {
@@ -31,7 +26,6 @@ router.get("/google", (req: Request, res: Response) => {
     })(req, res);
 });
 
-// ✅ Google OAuth callback
 router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "/login" }),

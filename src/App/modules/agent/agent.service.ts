@@ -5,8 +5,8 @@ import jwt from "jsonwebtoken";
 import { envVars } from "../../config/env";
 
 const createAgent = async (payload: Partial<IAgent>) => {
-  // hash password
-  const hashedPassword = await bcrypt.hash(payload.password as string, 10);
+  if (!payload.password) throw new Error("Password is required");
+  const hashedPassword = await bcrypt.hash(payload.password, 10);
 
   const agent = await Agent.create({
     ...payload,
@@ -16,9 +16,11 @@ const createAgent = async (payload: Partial<IAgent>) => {
   return agent;
 };
 
-const loginAgent = async (payload: { email: string; password: string }) => {
+const loginAgent = async (payload: { email: string; password?: string }) => {
+  if (!payload.password) throw new Error("Password is required");
+
   const agent = await Agent.findOne({ email: payload.email });
-  if (!agent) throw new Error("Agent not found");
+  if (!agent || !agent.password) throw new Error("Invalid credentials");
 
   const isMatch = await bcrypt.compare(payload.password, agent.password);
   if (!isMatch) throw new Error("Invalid credentials");

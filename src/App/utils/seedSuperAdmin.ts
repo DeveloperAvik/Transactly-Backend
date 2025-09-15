@@ -5,7 +5,7 @@ import bcryptjs from "bcryptjs";
 
 export const seedSuperAdmin = async () => {
     try {
-        // Check required env vars
+
         if (!envVars.superAdminEmail || !envVars.superAdminPass || !envVars.bcryptSaltRound) {
             throw new Error("SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASS or BCRYPT_SALT_ROUND is missing in env");
         }
@@ -18,7 +18,6 @@ export const seedSuperAdmin = async () => {
 
         console.log("Creating super admin...");
 
-        // Hash password safely
         const hashedPassword = await bcryptjs.hash(
             envVars.superAdminPass.trim(),
             Number(envVars.bcryptSaltRound)

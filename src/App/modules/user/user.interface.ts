@@ -1,11 +1,11 @@
 import { Types } from "mongoose";
 
 export enum Role {
-  SUPERADMIN = "superadmin",  // Full system control
-  ADMIN = "admin",            // Manages agents, merchants, users
-  AGENT = "agent",            // Cash in / cash out service
-  MERCHANT = "merchant",      // Businesses receiving payments
-  USER = "user"               // Regular wallet users
+  SUPERADMIN = "superadmin",  
+  ADMIN = "admin",            
+  AGENT = "agent",            
+  MERCHANT = "merchant",      
+  USER = "user"               
 }
 
 export interface IAuthProvider {

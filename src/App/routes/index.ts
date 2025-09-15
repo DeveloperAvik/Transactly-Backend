@@ -21,7 +21,7 @@ const moduleRoutes = [
         route: AgentRoutes,
     },
     {
-        path: "/wallet",   // ✅ wallet route
+        path: "/wallet",   
         route: WalletRoutes
     }, {
         path: "/transaction",

@@ -2,7 +2,7 @@ import { Wallet } from "./wallet.model";
 import { IWallet } from "./wallet.interface";
 
 const createWallet = async (payload: { user: string }) => {
-    // ✅ Check if wallet already exists
+
     const existingWallet = await Wallet.findOne({ user: payload.user });
     if (existingWallet) {
         throw new Error("Wallet already exists for this user");

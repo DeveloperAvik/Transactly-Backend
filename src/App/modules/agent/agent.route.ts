@@ -3,10 +3,8 @@ import { AgentController } from "./agent.controller";
 
 const router = Router();
 
-// Auth
 router.post("/login", AgentController.loginAgent);
 
-// Admin CRUD
 router.post("/create", AgentController.createAgent);
 router.get("/", AgentController.getAllAgents);
 router.get("/:id", AgentController.getAgentById);

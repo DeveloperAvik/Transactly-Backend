@@ -18,7 +18,7 @@ passport.use(
                     return done(null, false, { message: "User does not exist" });
                 }
 
-                const isGoogleAuth = user.auths.some((p) => p.provider === "google");
+                const isGoogleAuth = user.auths?.some((p) => p.provider === "google");
                 if (isGoogleAuth && !user.password) {
                     return done(null, false, { message: "You registered with Google. Please login using Google." });
                 }
@@ -70,7 +70,7 @@ passport.use(
                         ],
                     });
                 } else {
-                    // If user exists but no google provider linked
+                    user.auths = user.auths || []
                     const alreadyHasGoogle = user.auths.some((p) => p.provider === "google");
                     if (!alreadyHasGoogle) {
                         user.auths.push({ provider: "google", providerId: profile.id });
@@ -87,7 +87,7 @@ passport.use(
     )
 );
 
-// ---- Sessions (only if using session-based auth) ----
+
 passport.serializeUser((user: any, done) => {
     done(null, user._id);
 });

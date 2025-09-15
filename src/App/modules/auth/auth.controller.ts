@@ -11,7 +11,7 @@ import { envVars } from "../../config/env";
 import { sendResponse } from "../../utils/sendRespose";
 
 export const AuthControllers = {
-    // ✅ Login with credentials
+
     credentialsLogin: async (req: Request, res: Response, next: NextFunction) => {
         try {
             passport.authenticate("local", async (err: any, user: any, info: any) => {
@@ -39,7 +39,7 @@ export const AuthControllers = {
         }
     },
 
-    // ✅ Get new access token
+
     getNewAccessToken: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const refreshToken = req.cookies.refreshToken;
@@ -61,7 +61,7 @@ export const AuthControllers = {
         }
     },
 
-    // ✅ Logout
+
     logOut: async (req: Request, res: Response, next: NextFunction) => {
         try {
             res.clearCookie("accessToken", { httpOnly: true, secure: false, sameSite: "lax" });
@@ -78,7 +78,7 @@ export const AuthControllers = {
         }
     },
 
-    // ✅ Reset password
+
     resetPassword: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { oldPassword, newPassword } = req.body;
@@ -97,7 +97,6 @@ export const AuthControllers = {
         }
     },
 
-    // ✅ Google OAuth callback
     googleCallbackController: async (req: Request, res: Response, next: NextFunction) => {
         try {
             let redirectTo = (req.query.state as string) || "/";
