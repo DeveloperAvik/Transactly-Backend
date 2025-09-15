@@ -16,6 +16,9 @@ Supports multiple roles: **Superadmin, Admin, Agent, Merchant, and User** with J
 
 ---
 
+superadmin: avikd906@gmail.com
+pass: AvikDas@1234$*
+
 ## 🛠️ Tech Stack
 - **Backend**: Node.js, Express.js, TypeScript  
 - **Database**: MongoDB + Mongoose  
@@ -46,6 +49,8 @@ npm run build
 
 # Run production
 npm start
+
+```
 
 
 🔑 Authentication Endpoints
