@@ -1,60 +1,45 @@
-import { Server } from "http";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import app from "./app";
-import { seedSuperAdmin } from './App/utils/seedSuperAdmin';
+import { seedSuperAdmin } from "./App/utils/seedSuperAdmin";
 import { envVars } from "./App/config/env";
 
 dotenv.config();
-const PORT = envVars.port || 3000;
 
-let server: Server;
+const isProd = process.env.NODE_ENV === "production";
 
-const startServer = async () => {
-    try {
+const connectDB = async () => {
+    if (mongoose.connection.readyState === 0) {
         await mongoose.connect(envVars.mongodbUrl);
-        console.log("Connected to MongoDB");
-
-        server = app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
-    } catch (error) {
-        console.error("Failed to connect to MongoDB", error);
-        process.exit(1);
+        console.log("✅ Connected to MongoDB");
     }
 };
 
-(async () => {
-    await startServer();
-    await seedSuperAdmin();
-})();
+// Local dev mode
+if (!isProd) {
+    const PORT = envVars.port || 3000;
 
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-    console.error("Unhandled Rejection at:", promise, "reason:", reason);
-    if (server) {
-        server.close(() => process.exit(1));
-    } else {
-        process.exit(1);
-    }
-});
+    (async () => {
+        try {
+            await connectDB();
+            await seedSuperAdmin(); // Only seed locally
+            app.listen(PORT, () => {
+                console.log(`🚀 Server is running on http://localhost:${PORT}`);
+            });
+        } catch (error) {
+            console.error("❌ Failed to start server:", error);
+            process.exit(1);
+        }
+    })();
+}
 
-// Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
-    console.error("Uncaught Exception:", error);
-    if (server) {
-        server.close(() => process.exit(1));
-    } else {
-        process.exit(1);
+// Vercel deploy mode
+export default async function handler(req: any, res: any) {
+    try {
+        await connectDB();
+        return app(req, res);
+    } catch (error) {
+        console.error("❌ Error during handler execution:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
-});
-
-// Graceful shutdown on SIGTERM
-process.on("SIGTERM", () => {
-    console.log("SIGTERM received. Shutting down gracefully.");
-    if (server) {
-        server.close(() => console.log("Process terminated!"));
-    } else {
-        console.log("No server to close.");
-    }
-});
+}
