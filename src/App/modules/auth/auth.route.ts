@@ -3,6 +3,9 @@ import passport from "passport";
 import { AuthControllers } from "./auth.controller";
 import { Role } from "../user/user.interface";
 import { checkAuth } from "../../middlewares/checkAuths";
+import { validateRequest } from "../../middlewares/validateRequest";
+import { createUserZodSchema } from "../user/user.validation";
+import { UserController } from "../user/user.controller";
 
 const router = Router();
 
@@ -31,5 +34,11 @@ router.get(
     passport.authenticate("google", { failureRedirect: "/login" }),
     AuthControllers.googleCallbackController
 );
+router.post(
+    "/register",
+    validateRequest(createUserZodSchema),
+    UserController.createUser
+);
+
 
 export { router as AuthRoutes };
