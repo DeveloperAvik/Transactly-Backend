@@ -1,11 +1,11 @@
 import { Types } from "mongoose";
 
 export enum Role {
-  SUPERADMIN = "superadmin",  
-  ADMIN = "admin",            
-  AGENT = "agent",            
-  MERCHANT = "merchant",      
-  USER = "user"               
+  SUPERADMIN = "superadmin",
+  ADMIN = "admin",
+  AGENT = "agent",
+  MERCHANT = "merchant",
+  USER = "user",
 }
 
 export interface IAuthProvider {
@@ -16,17 +16,17 @@ export interface IAuthProvider {
 export enum isActive {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
-  BLOCKED = "BLOCKED"
+  BLOCKED = "BLOCKED",
 }
 
 export enum isVerified {
   VERIFIED = "VERIFIED",
-  UNVERIFIED = "UNVERIFIED"
+  UNVERIFIED = "UNVERIFIED",
 }
 
 export enum isDeleted {
   DELETED = "DELETED",
-  UNDELETED = "UNDELETED"
+  UNDELETED = "UNDELETED",
 }
 
 export interface IUser {
@@ -46,8 +46,13 @@ export interface IUser {
   role: Role;
 
   auths?: IAuthProvider[];
-  balance?: number;                   
-  transactionHistory?: Types.ObjectId[]; 
-  linkedAccounts?: string[];         
-  createdBy?: Types.ObjectId;         
+  balance?: number;
+  transactionHistory?: Types.ObjectId[];
+  linkedAccounts?: string[];
+  createdBy?: Types.ObjectId;
+
+  // ✅ New fields for 2-Step Verification (2FA)
+  twoStepEnabled?: boolean;
+  loginOtp?: string | null;
+  otpExpires?: Date | null;
 }

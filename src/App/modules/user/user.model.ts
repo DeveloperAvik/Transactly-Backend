@@ -33,6 +33,20 @@ const userSchema = new Schema<IUser>(
     linkedAccounts: [{ type: String }],
 
     createdBy: { type: Types.ObjectId, ref: "User" },
+
+    // ✅ NEW FIELDS FOR 2-STEP LOGIN (2FA)
+    twoStepEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    loginOtp: {
+      type: String,
+      default: null,
+    },
+    otpExpires: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

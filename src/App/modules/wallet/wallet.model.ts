@@ -2,42 +2,46 @@ import { Schema, model } from "mongoose";
 import { IWallet, ITransaction } from "./wallet.interface";
 
 const walletSchema = new Schema<IWallet>(
-    {
-        user: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-            unique: true, 
-        },
-        balance: {
-            type: Number,
-            default: 0,
-        },
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
     },
-    { timestamps: true }
+    balance: {
+      type: Number,
+      default: 0,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
 );
 
 const transactionSchema = new Schema<ITransaction>(
-    {
-        fromWallet: {
-            type: Schema.Types.ObjectId,
-            ref: "Wallet",
-        },
-        toWallet: {
-            type: Schema.Types.ObjectId,
-            ref: "Wallet",
-        },
-        amount: {
-            type: Number,
-            required: true,
-        },
-        type: {
-            type: String,
-            enum: ["credit", "debit", "transfer"],
-            required: true,
-        },
+  {
+    fromWallet: {
+      type: Schema.Types.ObjectId,
+      ref: "Wallet",
     },
-    { timestamps: true }
+    toWallet: {
+      type: Schema.Types.ObjectId,
+      ref: "Wallet",
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["credit", "debit", "transfer"],
+      required: true,
+    },
+  },
+  { timestamps: true }
 );
 
 export const Wallet = model<IWallet>("Wallet", walletSchema);
