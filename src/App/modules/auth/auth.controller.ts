@@ -11,7 +11,7 @@ import { envVars } from "../../config/env";
 import { sendResponse } from "../../utils/sendRespose";
 import { User } from "../user/user.model";
 import { sendEmail } from "../../utils/emailSender";
-import { UserServices } from "../user/user.service"; // ✅ Added import
+import { UserServices } from "../user/user.service";
 
 /**
  * Auth controller — handles register + login + 2FA + refresh/logout/reset
@@ -19,7 +19,6 @@ import { UserServices } from "../user/user.service"; // ✅ Added import
 export const AuthControllers = {
   /**
    * ✅ POST /auth/register
-   * Handles user registration
    */
   registerUser: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -39,9 +38,6 @@ export const AuthControllers = {
 
   /**
    * ✅ POST /auth/login
-   * Uses passport local to validate credentials.
-   * If user.twoStepEnabled => generate OTP, email it, and respond with { twoStep: true, userId }
-   * Otherwise => issue tokens immediately.
    */
   credentialsLogin: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -49,14 +45,13 @@ export const AuthControllers = {
         if (err) return next(new AppError(httpStatus.UNAUTHORIZED, String(err)));
         if (!user) return next(new AppError(httpStatus.UNAUTHORIZED, info?.message || "Authentication failed"));
 
-        // If 2-step verification is enabled, generate OTP and send it — do NOT issue tokens yet
+        // ✅ 2-Step Verification logic
         if (user.twoStepEnabled) {
           const otp = Math.floor(100000 + Math.random() * 900000).toString();
           user.loginOtp = otp;
-          user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+          user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // expires in 5 min
           await user.save();
 
-          // send OTP (email)
           if (user.email) {
             await sendEmail(
               user.email,
@@ -73,12 +68,12 @@ export const AuthControllers = {
           return sendResponse(res, {
             success: true,
             statusCode: httpStatus.OK,
-            message: "2FA required. OTP sent to your email (if available).",
+            message: "2FA required. OTP sent to your email.",
             data: { twoStep: true, userId: user._id },
           });
         }
 
-        // Normal login flow (no 2FA)
+        // ✅ If 2FA is disabled — login directly
         const userTokens = await createUserTokens(user);
         const { password: _pass, ...rest } = user.toObject();
 
@@ -107,7 +102,6 @@ export const AuthControllers = {
   verifyTwoStepOtp: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId, otp } = req.body;
-
       if (!userId || !otp) {
         throw new AppError(httpStatus.BAD_REQUEST, "userId and otp are required");
       }
@@ -115,9 +109,8 @@ export const AuthControllers = {
       const user = await User.findById(userId);
       if (!user) throw new AppError(httpStatus.NOT_FOUND, "User not found");
 
-      if (!user.loginOtp || !user.otpExpires) {
+      if (!user.loginOtp || !user.otpExpires)
         throw new AppError(httpStatus.BAD_REQUEST, "No OTP pending for this user");
-      }
 
       if (user.otpExpires < new Date()) {
         user.loginOtp = null;
@@ -130,6 +123,7 @@ export const AuthControllers = {
         throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP");
       }
 
+      // ✅ OTP correct — clear and issue tokens
       user.loginOtp = null;
       user.otpExpires = null;
       await user.save();
@@ -175,19 +169,17 @@ export const AuthControllers = {
       const user = await User.findById(decoded.userId);
       if (!user) throw new AppError(httpStatus.NOT_FOUND, "User not found");
 
-      user.twoStepEnabled = Boolean(enable);
-
-      if (!user.twoStepEnabled) {
+      user.twoStepEnabled = enable;
+      if (!enable) {
         user.loginOtp = null;
         user.otpExpires = null;
       }
-
       await user.save();
 
       sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: `2-Step Verification ${user.twoStepEnabled ? "enabled" : "disabled"} successfully`,
+        message: `2-Step Verification ${enable ? "enabled" : "disabled"} successfully`,
         data: { twoStepEnabled: user.twoStepEnabled },
       });
     } catch (error) {
