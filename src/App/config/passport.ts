@@ -30,8 +30,9 @@ passport.use(
           return done(null, false, { message: "Please verify your email." });
         }
 
-        if (["blocked", "inactive"].includes(user.status)) {
-          return done(null, false, { message: "Account suspended. Contact support." });
+       if (user.isActive === "BLOCKED" || user.isActive === "INACTIVE") {
+            console.warn("🚫 Blocked user tried to log in:", user.email);
+            return done(null, false, { message: "Account suspended. Contact support." });
         }
 
         const isMatch = await bcrypt.compare(password, user.password || "");

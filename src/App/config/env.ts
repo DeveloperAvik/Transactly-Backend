@@ -18,6 +18,11 @@ interface EnvVars {
   googleCallbackUrl: string;
   expressSessionSecret: string;
   frontendUrl: string;
+
+  // ✅ Added for email (OTP sending)
+  emailUser: string;
+  emailPass: string;
+  emailService: string;
 }
 
 const loadEnvVars = (): EnvVars => {
@@ -38,6 +43,9 @@ const loadEnvVars = (): EnvVars => {
     "GOOGLE_CALLBACK_URL",
     "EXPRESS_SESSION_SECRET",
     "FRONTEND_URL",
+    "EMAIL_USER",
+    "EMAIL_PASS",
+    "EMAIL_SERVICE",
   ];
 
   requiredVars.forEach((varName) => {
@@ -63,6 +71,11 @@ const loadEnvVars = (): EnvVars => {
     googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL as string,
     expressSessionSecret: process.env.EXPRESS_SESSION_SECRET as string,
     frontendUrl: process.env.FRONTEND_URL as string,
+
+    // ✅ Added
+    emailUser: process.env.EMAIL_USER as string,
+    emailPass: process.env.EMAIL_PASS as string,
+    emailService: process.env.EMAIL_SERVICE as string,
   };
 };
 
