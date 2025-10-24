@@ -30,7 +30,7 @@ app.use(
 
 const allowedOrigins = [
   frontendUrl,
-  "https://wallet-frontend.vercel.app",
+  "https://transactly-frontend-mu.vercel.app",
 ];
 
 app.use(

@@ -12,7 +12,6 @@ const router = Router();
 
 /**
  * 🧾 AUTH ROUTES
- * Handles registration, login, 2FA, password reset, tokens, and Google OAuth.
  */
 
 // ✅ Register new user
@@ -53,7 +52,17 @@ router.post(
   AuthControllers.resetPassword
 );
 
-// ✅ Google OAuth2: Start login with Google
+// ✅ 🆕 Get current logged-in user
+router.get(
+  "/me",
+  checkAuth(Role.USER, Role.ADMIN, Role.SUPERADMIN),
+  (req: Request, res: Response) => {
+    if (!req.user) return res.status(401).json({ success: false, message: "Not authenticated" });
+    res.status(200).json({ success: true, data: req.user });
+  }
+);
+
+// ✅ Google OAuth2
 router.get("/google", (req: Request, res: Response) => {
   const redirect = (req.query.redirect as string) || "/";
   passport.authenticate("google", {
@@ -62,7 +71,6 @@ router.get("/google", (req: Request, res: Response) => {
   })(req, res);
 });
 
-// ✅ Google OAuth2: Callback handler
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
